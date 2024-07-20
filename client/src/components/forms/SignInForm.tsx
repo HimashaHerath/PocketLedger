@@ -13,17 +13,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const signInSchema = z.object({
-  username: z
+  identifier: z
     .string()
-    .min(2, { message: "Username must be at least 2 characters." }),
+    .min(2, { message: "Username or Email must be at least 2 characters." }),
   password: z
     .string()
     .min(6, { message: "Password must be at least 6 characters." }),
@@ -35,13 +30,39 @@ export function SignInForm() {
   const form = useForm<SignInFormValues>({
     resolver: zodResolver(signInSchema),
     defaultValues: {
-      username: "",
+      identifier: "",
       password: "",
     },
   });
 
-  const onSubmit = (data: SignInFormValues) => {
-    console.log("Sign in form submitted with:", data);
+  const onSubmit = async (data: SignInFormValues) => {
+    try {
+      const response = await fetch("http://localhost:3000/signin", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          identifier: data.identifier,
+          password: data.password,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+
+      const result = await response.json();
+      console.log("Sign in successful:", result);
+
+      // Store the token in localStorage or any state management solution
+      localStorage.setItem("token", result.token);
+
+      // Redirect to dashboard or perform any other action
+      // window.location.href = "/dashboard"; // Example redirect
+    } catch (error) {
+      console.error("Error during sign in:", error);
+    }
   };
 
   return (
@@ -54,12 +75,12 @@ export function SignInForm() {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
               control={form.control}
-              name="username"
+              name="identifier"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Username</FormLabel>
+                  <FormLabel>Username or Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter your username" {...field} />
+                    <Input placeholder="Enter your username or email" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

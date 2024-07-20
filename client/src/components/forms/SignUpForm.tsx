@@ -16,41 +16,73 @@ import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 
-// Schema definition using Zod for form validation
-const signUpSchema = z.object({
-    username: z.string().min(2, { message: "Username must be at least 2 characters." }),
+const signUpSchema = z
+  .object({
+    username: z
+      .string()
+      .min(2, { message: "Username must be at least 2 characters." }),
     email: z.string().email({ message: "Invalid email address." }),
-    password: z.string().min(6, { message: "Password must be at least 6 characters." }),
-    confirmPassword: z.string().min(6, { message: "Confirm Password must be at least 6 characters." }),
-  }).refine((data) => data.password === data.confirmPassword, {
+    password: z
+      .string()
+      .min(6, { message: "Password must be at least 6 characters." }),
+    confirmPassword: z
+      .string()
+      .min(6, { message: "Confirm Password must be at least 6 characters." }),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match.",
-    path: ["confirmPassword"], // Specify the path to attach the error message to confirmPassword
+    path: ["confirmPassword"],
   });
-  
 
-// TypeScript type inference for form values
 type SignUpFormValues = z.infer<typeof signUpSchema>;
 
 export function SignUpForm() {
   const form = useForm<SignUpFormValues>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
-      username: '',
-      email: '',
-      password: '',
-      confirmPassword: ''
+      username: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
     },
   });
 
-  // Handler for form submission
-  const onSubmit = (data: SignUpFormValues) => {
-    console.log("Sign up form submitted with:", data);
-    // Placeholder for future integration with backend
+  const onSubmit = async (data: SignUpFormValues) => {
+    try {
+      const response = await fetch("http://localhost:3000/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          user: {
+            username: data.username,
+            email: data.email,
+            password: data.password,
+            password_confirmation: data.confirmPassword,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+
+      const result = await response.json();
+      console.log("Sign up successful:", result);
+
+      // Store the token in localStorage or any state management solution
+      localStorage.setItem("token", result.token);
+
+      // Redirect to dashboard or perform any other action
+      // window.location.href = "/dashboard"; // Example redirect
+    } catch (error) {
+      console.error("Error during sign up:", error);
+    }
   };
 
   return (
@@ -81,7 +113,11 @@ export function SignUpForm() {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="Enter your email" {...field} />
+                    <Input
+                      type="email"
+                      placeholder="Enter your email"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -94,7 +130,11 @@ export function SignUpForm() {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="Enter your password" {...field} />
+                    <Input
+                      type="password"
+                      placeholder="Enter your password"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -107,7 +147,11 @@ export function SignUpForm() {
                 <FormItem>
                   <FormLabel>Confirm Password</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="Confirm your password" {...field} />
+                    <Input
+                      type="password"
+                      placeholder="Confirm your password"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
