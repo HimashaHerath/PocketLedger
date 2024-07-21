@@ -16,21 +16,24 @@ default: &default
   adapter: postgresql
   encoding: unicode
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-  username: himasha-e
-  password: 1234
-  host: localhost
-  port: 5432
+  username: <%= ENV['DATABASE_USERNAME'] || 'himasha-e' %>
+  password: <%= ENV['DATABASE_PASSWORD'] || '1234' %>
+  host: <%= ENV['DATABASE_HOST'] || 'localhost' %>
+  port: <%= ENV['DATABASE_PORT'] || 5432 %>
 
 development:
   <<: *default
-  database: pocketledger_development
+  database: <%= ENV['DATABASE_URL'] ? nil : 'pocketledger_development' %>
+  url: <%= ENV['DATABASE_URL'] %>
 
 test:
   <<: *default
-  database: pocketledger_test
+  database: <%= ENV['DATABASE_URL'] ? nil : 'pocketledger_test' %>
+  url: <%= ENV['DATABASE_URL'] %>
 
 production:
   <<: *default
-  database: server_production
-  username: server
+  database: <%= ENV['DATABASE_URL'] ? nil : 'server_production' %>
+  username: <%= ENV['DATABASE_USERNAME'] || 'server' %>
   password: <%= ENV["SERVER_DATABASE_PASSWORD"] %>
+  url: <%= ENV['DATABASE_URL'] %>
